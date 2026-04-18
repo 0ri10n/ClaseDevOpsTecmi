@@ -1,0 +1,39 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Resources:
+  WebServer:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-098e39bafa7e7303d
+      InstanceType: t2.micro
+      SecurityGroups:
+        - !Ref WebSG
+      Tags:
+        - Key: Name
+          Value: Calculadora-DevOps
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          yum update -y
+          yum install -y httpd git
+          
+          systemctl start httpd
+          systemctl enable httpd
+          
+          cd /var/www/html
+          git clone https://github.com/0ri10n/ClaseDevOpsTecmi .
+          
+          # Si el archivo se llama Calculadora.html, lo movemos a index.html
+          if [ -f "Calculadora.html" ]; then
+            mv Calculadora.html index.html
+          fi
+
+  WebSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Habilitar puerto 80 para la Calculadora
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
